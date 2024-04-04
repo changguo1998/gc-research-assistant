@@ -1,0 +1,4 @@
+resource_path = ""
+zotero_db_path = "" # path to zotero db
+backup_path = ""
+editor = ""
