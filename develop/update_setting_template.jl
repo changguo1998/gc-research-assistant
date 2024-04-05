@@ -9,8 +9,12 @@ while !eof(io_in)
     i_comment = findfirst('#', l)
     i_string_start = findfirst('"', l)
     i_string_stop = isnothing(i_string_start) ? nothing : findnext('"', l, i_string_start+1)
-    newl = String(l[1:i_string_start]*l[i_string_stop:end])
-    println(io_out, newl)
+    if isnothing(i_string_start)
+        println(io_out, l)
+    else
+        newl = String(l[1:i_string_start]*l[i_string_stop:end])
+        println(io_out, newl)
+    end
 end
 
 close(io_in)

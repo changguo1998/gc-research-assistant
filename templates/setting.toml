@@ -1,4 +1,13 @@
-resource_path = ""
-zotero_db_path = "" # path to zotero db
+# Backup
 backup_path = ""
+
+# Resource Manager
+repository_path = ""
+zotero_db_path = "" # path to zotero db
+pdf_viewer = ""
+
+# Schedule
+timezone = "" # for example "America/Toronto"
+
+# other
 editor = ""
