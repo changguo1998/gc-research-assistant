@@ -1,18 +1,14 @@
+if !@isdefined REPOSITORY_SETTING_DIR_NAME_RM
 
 REPOSITORY_SETTING_DIR_NAME_RM = ".gcra"
 
 REPOSITORY_MODULE_DIR_RM = String[]
-if @isdefined GALLERY_DIR_NAME_JOURNAL
-    push!(REPOSITORY_MODULE_DIR_RM, GALLERY_DIR_NAME_JOURNAL)
-end
 
-if !@isdefined open_with_pdf_viewer
-    function open_with_pdf_viewer(path::AbstractString)
-        if Sys.iswindows()
-            run(Cmd([settings["pdf_viewer"], path]); wait=false)
-        else
-            run(Cmd([settings["pdf_viewer"], path, "&"]))
-        end
+function open_with_pdf_viewer(path::AbstractString)
+    if Sys.iswindows()
+        run(Cmd([settings["pdf_viewer"], path]); wait=false)
+    else
+        run(Cmd([settings["pdf_viewer"], path, "&"]))
     end
 end
 
@@ -53,4 +49,6 @@ end
 function open_pdf_file(path::String)
     open_with_pdf_viewer(path)
     return nothing
+end
+
 end

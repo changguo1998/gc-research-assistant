@@ -1,3 +1,4 @@
+if !@isdefined TIME_PRECISION_SCHEDULE
 
 TODO_STATUS_LIST_SCHEDULE = (:noted, :processing, :finished, :failed)
 TIME_PRECISION_SCHEDULE = Second(1)
@@ -80,3 +81,5 @@ function parseTodo_string(s::AbstractString)
 end
 
 ==(a::Todo, b::Todo) = string(a) == string(b)
+
+end
