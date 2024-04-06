@@ -19,7 +19,7 @@ function open_with_editor(path::AbstractString)
     end
 end
 
-function open_daily_journal(date::Date=today(TimeZone(settings["timezone"])))
+function open_daily_journal(date::Date=today(UTC))
     if !isdir(settings["repository_path"])
         @error("repository not opened")
         return nothing
@@ -37,7 +37,7 @@ function open_daily_journal(date::Date=today(TimeZone(settings["timezone"])))
     return nothing
 end
 
-function open_weekly_journal(date::Date=today(TimeZone(settings["timezone"])))
+function open_weekly_journal(date::Date=today(UTC))
     if !isdir(settings["repository_path"])
         @error("repository not opened")
         return nothing
@@ -76,7 +76,7 @@ function open_weekly_journal(date::Date=today(TimeZone(settings["timezone"])))
     return nothing
 end
 
-function open_monthly_journal(date::Date=today(TimeZone(settings["timezone"])))
+function open_monthly_journal(date::Date=today(UTC))
     if !isdir(settings["repository_path"])
         @error("repository not opened")
         return nothing
@@ -149,7 +149,7 @@ function update_seperator!(s::Vector{String}, d::Date)
     return nothing
 end
 
-function gather_journal(d1::Date, d2::Date)
+function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
     s = String[]
     if dayofyear(d1) != 1
         update_seperator!(s, firstdayofyear(d1))
