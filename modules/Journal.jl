@@ -6,30 +6,17 @@ if @isdefined REPOSITORY_MODULE_DIR_RM
 end
 
 if !@isdefined GALLERY_DIR_NAME_JOURNAL
-
-GALLERY_DIR_NAME_JOURNAL = "Journal"
+    GALLERY_DIR_NAME_JOURNAL = "Journal"
+end
 
 TIME_PRECISION_JOURNAL = Day(1)
 
-function open_with_editor(path::AbstractString)
-    if Sys.iswindows()
-        run(Cmd([settings["editor"], path]); wait=false)
-    else
-        run(Cmd([settings["editor"], path, "&"]))
-    end
-end
-
 function open_daily_journal(date::Date=today(UTC))
-    if !isdir(settings["repository_path"])
-        @error("repository not opened")
-        return nothing
-    end
-
-    jfilepath = joinpath(settings["repository_path"], GALLERY_DIR_NAME_JOURNAL,
+    @repoisopened
+    jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
         @sprintf("daily_%04d-%02d-%02d.md", year(date), month(date), day(date)))
     if !isfile(jfilepath)
-        t = readlines(joinpath(settings["repository_path"],
-            REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_daily.md"))
+        t = readlines(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_daily.md"))
         t[1] = replace(t[1], "{{date}}"=>string(date))
         open(io->foreach(l->println(io, l), t), jfilepath, "w")
     end
@@ -38,13 +25,10 @@ function open_daily_journal(date::Date=today(UTC))
 end
 
 function open_weekly_journal(date::Date=today(UTC))
-    if !isdir(settings["repository_path"])
-        @error("repository not opened")
-        return nothing
-    end
+    @repoisopened
     d1 = firstdayofweek(date)
     d2 = lastdayofweek(date)
-    jfilepath = joinpath(settings["repository_path"], GALLERY_DIR_NAME_JOURNAL,
+    jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
         @sprintf("weekly_%04d-%02d.md", year(date), week(date)))
     if !isfile(jfilepath)
         t = readlines(joinpath(settings["repository_path"],
@@ -77,11 +61,8 @@ function open_weekly_journal(date::Date=today(UTC))
 end
 
 function open_monthly_journal(date::Date=today(UTC))
-    if !isdir(settings["repository_path"])
-        @error("repository not opened")
-        return nothing
-    end
-    jfilepath = joinpath(settings["repository_path"], GALLERY_DIR_NAME_JOURNAL,
+    @repoisopened
+    jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
         @sprintf("monthly_%04d-%02d.md", year(date), month(date)))
     if !isfile(jfilepath)
         t = readlines(joinpath(settings["repository_path"],
@@ -97,7 +78,7 @@ function open_monthly_journal(date::Date=today(UTC))
         d2 = firstdayofweek(m31)
         for d = d1:Day(7):d2
             local tmp = t[i+1:j-1]
-            wfilepath = joinpath(settings["repository_path"], GALLERY_DIR_NAME_JOURNAL,
+            wfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
                 @sprintf("weekly_%04d-%02d.md", year(d), week(d)))
             tmp[1] = replace(tmp[1],
                 "{{weekofyear}}"=>week(d),
@@ -114,15 +95,10 @@ function open_monthly_journal(date::Date=today(UTC))
 end
 
 function open_journal_template()
-    jfilepath = joinpath(settings["repository_path"], REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal.md")
+    @repoisopened
+    jfilepath = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal.md")
     open_with_editor(jfilepath)
     return nothing
-end
-
-const charpool = [collect('a':'z'); collect('A':'Z'); collect('0':'9')]
-
-function randstr(n::Int)
-    return String(rand(charpool, n))
 end
 
 year_template(d::Date) = @sprintf("# Year %04d", year(d))
@@ -162,7 +138,7 @@ function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
     end
     for d = d1:Day(1):d2
         update_seperator!(s, d)
-        dfile = joinpath(settings["repository_path"],
+        dfile = _repoprefix(
             GALLERY_DIR_NAME_JOURNAL,
             @sprintf("daily_%04d-%02d-%02d.md",year(d),month(d),day(d))
         )
@@ -217,8 +193,8 @@ function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
     end
     remain_flag .|= (level .> 3)
     s = s[remain_flag]
-    mkpath(joinpath(settings["repository_path"], REPOSITORY_SETTING_DIR_NAME_RM, "var"))
-    tmpfile = joinpath(settings["repository_path"], REPOSITORY_SETTING_DIR_NAME_RM, "var", "journal_"*randstr(8)*".md")
+    mkpath(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "var"))
+    tmpfile = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "var", "journal_"*randstr(8)*".md")
     open(tmpfile, "w") do io
         for _l in s
             if startswith(_l, "#")
@@ -229,6 +205,4 @@ function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
     end
     open_with_editor(tmpfile)
     return nothing
-end
-
 end
