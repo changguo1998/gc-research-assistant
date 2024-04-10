@@ -10,7 +10,7 @@ repo_setting_file(p::String) = abspath(p, REPOSITORY_SETTING_DIR_NAME_RM, "setti
 
 function _repopath()
     @repoisopened
-    return settings["repository_path"]
+    return SETTING["repository_path"]
 end
 
 _repoprefix(path...) = joinpath(_repopath(), path...)
@@ -27,24 +27,37 @@ function init_repo(path::String)
     end
     mkpath(joinpath(path, REPOSITORY_SETTING_DIR_NAME_RM, "templates"))
     for f in readdir(abspath(@__DIR__, "..", "templates"))
-        if f != "setting.toml"
+        if (f != "setting.toml") && (!isfile(joinpath(path, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f)))
             cp(joinpath(@__DIR__, "..", "templates", f),
             joinpath(path, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f))
         end
     end
-    tsetting = deepcopy(settings)
-    tsetting["repository_path"] = abspath(path)
-    open(io->TOML.print(io, tsetting), repo_setting_file(path), "w")
+    # tsetting = deepcopy(SETTING)
+    # tsetting["repository_path"] = abspath(path)
+    # open(io->TOML.print(io, tsetting), repo_setting_file(path), "w")
     return nothing
 end
 
 function open_repo!(path::String)
-    global settings
-    if !isfile(repo_setting_file(path))
+    global SETTING
+    if !isdir(path)
         error("repository $path not exist")
         return nothing
     end
-    settings = TOML.parsefile(repo_setting_file(path))
+    SETTING["repository_path"] = abspath(path)
+    # SETTING = TOML.parsefile(repo_setting_file(path))
+    return nothing
+end
+
+function close_repo()
+    @repoisopened
+    close_prj()
+    varpath = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "var")
+    if isdir(varpath)
+        @info "cleaning temporary files"
+        rm(varpath, recursive=true)
+    end
+    SETTING["repository_path"] = ""
     return nothing
 end
 
@@ -58,7 +71,7 @@ end
 
 function _prjpath()
     @prjisopened
-    return _repoprefix("Projects", settings["project_name"])
+    return _repoprefix("Projects", SETTING["project_name"])
 end
 
 _prjprefix(path...) = joinpath(_prjpath(), path...)
@@ -85,7 +98,7 @@ function open_prj_by_name!(prjname::AbstractString)
     @repoisopened
     prjroot = _repoprefix("Projects", prjname)
     if isdir(prjroot)
-        settings["project_name"] = prjname
+        SETTING["project_name"] = prjname
     else
         @error "project $prjname not exist"
     end
@@ -107,32 +120,13 @@ function open_prj_by_id!()
     return nothing
 end
 
-function open_prj_log()
+function close_prj()
     @prjisopened
-    open_with_editor(_prjprefix(".ra", "log.md"))
+    SETTING["project_name"] = ""
+    return nothing
 end
 
-function write_prj_log()
+function open_prj_dir_with_editor()
     @prjisopened
-    logfilepath = _prjprefix(".ra", "log.md")
-    buffer = readlines(logfilepath)
-    ct = today(TimeZone(settings["timezone"]))
-    newline = "# DATE "*string(ct)
-    inewline = findfirst(startswith("# DATE "), buffer)
-    if isnothing(inewline)
-        open(logfilepath, "w") do io
-            foreach(l->println(io, l), buffer)
-            println(io, "---")
-            println(io, newline)
-        end
-    elseif newline != buffer[inewline]
-        open(logfilepath, "w") do io
-            foreach(l->println(io, l), buffer[1:newline-1])
-            println(io, newline)
-            println(io, "---")
-            foreach(l->println(io, l), buffer[newline:end])
-        end
-    end
-    open_with_editor(logfilepath)
-    return nothing
+    open_with_editor(_prjpath())
 end

@@ -12,8 +12,16 @@ for m in readdir(abspath(@__DIR__, "modules"), join=true)
     include(m)
 end
 
-global settings = TOML.parsefile(abspath(@__DIR__, "setting.toml"))
+global _SETTING_FILE = abspath(homedir(), ".gcra", "setting.toml")
 
-# if isdir(settings["repository_path"])
-#     open_repo!(settings["repository_path"])
+if isfile(_SETTING_FILE)
+    global SETTING = TOML.parsefile(_SETTING_FILE)
+else
+    global SETTING = TOML.parsefile(abspath(@__DIR__, "setting.toml"))
+    mkpath(joinpath(homedir(), ".gcra"))
+    open(io->TOML.print(io, SETTING), _SETTING_FILE, "w")
+end
+
+# if isdir(SETTING["repository_path"])
+#     open_repo!(SETTING["repository_path"])
 # end

@@ -31,7 +31,7 @@ function open_weekly_journal(date::Date=today(UTC))
     jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
         @sprintf("weekly_%04d-%02d.md", year(date), week(date)))
     if !isfile(jfilepath)
-        t = readlines(joinpath(settings["repository_path"],
+        t = readlines(joinpath(SETTING["repository_path"],
             REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_weekly.md"))
         s = String[]
         t[1] = replace(t[1],
@@ -44,7 +44,7 @@ function open_weekly_journal(date::Date=today(UTC))
         append!(s, deepcopy(t[1:i-1]))
         for d = d1:Day(1):d2
             local tmp = t[i+1:j-1]
-            dailyfilepath = joinpath(settings["repository_path"],
+            dailyfilepath = joinpath(SETTING["repository_path"],
                 GALLERY_DIR_NAME_JOURNAL,
                 @sprintf("daily_%04d-%02d-%02d.md", year(d), month(d), day(d)))
             tmp[1] = replace(tmp[1],
@@ -65,7 +65,7 @@ function open_monthly_journal(date::Date=today(UTC))
     jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
         @sprintf("monthly_%04d-%02d.md", year(date), month(date)))
     if !isfile(jfilepath)
-        t = readlines(joinpath(settings["repository_path"],
+        t = readlines(joinpath(SETTING["repository_path"],
             REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_monthly.md"))
         s = String[]
         t[1] = replace(t[1], "{{yearmonth}}"=>@sprintf("%04d-%02d", year(date), month(date)))
@@ -204,5 +204,35 @@ function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
         end
     end
     open_with_editor(tmpfile)
+    return nothing
+end
+
+function open_prj_log()
+    @prjisopened
+    open_with_editor(_prjprefix(".ra", "log.md"))
+end
+
+function write_prj_log()
+    @prjisopened
+    logfilepath = _prjprefix(".ra", "log.md")
+    buffer = readlines(logfilepath)
+    ct = today(TimeZone(SETTING["timezone"]))
+    newline = "# DATE "*string(ct)
+    inewline = findfirst(startswith("# DATE "), buffer)
+    if isnothing(inewline)
+        open(logfilepath, "w") do io
+            foreach(l->println(io, l), buffer)
+            println(io, "---")
+            println(io, newline)
+        end
+    elseif newline != buffer[inewline]
+        open(logfilepath, "w") do io
+            foreach(l->println(io, l), buffer[1:newline-1])
+            println(io, newline)
+            println(io, "---")
+            foreach(l->println(io, l), buffer[newline:end])
+        end
+    end
+    open_with_editor(logfilepath)
     return nothing
 end

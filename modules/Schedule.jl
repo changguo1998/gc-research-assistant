@@ -6,7 +6,7 @@ LONG_AGO_SCHEDULE = DateTime(1000)
 LONG_AFTER_SCHEDULE = DateTime(3000)
 
 function after_period(t::Period)
-    global settings
+    global SETTING
     return round(now(), TIME_PRECISION_SCHEDULE) + t
 end
 
