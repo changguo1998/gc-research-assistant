@@ -2,8 +2,6 @@
 
 @include_without REPOSITORY_MODULE_DIR_RM REPOSITORY_MODULE_DIR_RM = String[]
 
-repo_setting_file(p::String) = abspath(p, REPOSITORY_SETTING_DIR_NAME_RM, "setting.toml")
-
 # =================================
 #       repository management
 # =================================
@@ -13,42 +11,59 @@ function _repopath()
     return SETTING["repository_path"]
 end
 
-_repoprefix(path...) = joinpath(_repopath(), path...)
+_repoprefix(path...) = _abspath(_repopath(), path...)
 
-function init_repo(path::String)
+"""
+```
+init_repo(dirc::String)
+```
+
+Initialize repository at given directory
+"""
+function init_repo(dirc::String)
     global REPOSITORY_SETTING_DIR_NAME_RM
-    if !ispath(path)
-        @error "$path not exist"
+    if !isdir(dirc)
+        @error "$dirc not exist"
         return nothing
     end
-    mkpath(joinpath(path, REPOSITORY_SETTING_DIR_NAME_RM))
+    mkpath(joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM))
     for dir in REPOSITORY_MODULE_DIR_RM
-        mkpath(joinpath(path, dir))
+        mkpath(joinpath(dirc, dir))
     end
-    mkpath(joinpath(path, REPOSITORY_SETTING_DIR_NAME_RM, "templates"))
+    mkpath(joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates"))
     for f in readdir(abspath(@__DIR__, "..", "templates"))
-        if (f != "setting.toml") && (!isfile(joinpath(path, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f)))
+        if (f != "setting.toml") && (!isfile(joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f)))
             cp(joinpath(@__DIR__, "..", "templates", f),
-            joinpath(path, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f))
+            joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f))
         end
     end
-    # tsetting = deepcopy(SETTING)
-    # tsetting["repository_path"] = abspath(path)
-    # open(io->TOML.print(io, tsetting), repo_setting_file(path), "w")
     return nothing
 end
 
+"""
+```
+open_repo!(path::String)
+```
+
+Open repository at given path
+"""
 function open_repo!(path::String)
     global SETTING
     if !isdir(path)
         error("repository $path not exist")
         return nothing
     end
-    SETTING["repository_path"] = abspath(path)
-    # SETTING = TOML.parsefile(repo_setting_file(path))
+    SETTING["repository_path"] = _abspath(path)
     return nothing
 end
 
+"""
+```
+close_repo()
+```
+
+Close current repository if any repository is opened
+"""
 function close_repo()
     @repoisopened
     close_prj()
@@ -74,15 +89,29 @@ function _prjpath()
     return _repoprefix("Projects", SETTING["project_name"])
 end
 
-_prjprefix(path...) = joinpath(_prjpath(), path...)
+_prjprefix(path...) = _abspath(_prjpath(), path...)
 
+"""
+```
+list_projects()
+```
+
+Return available projects in currently opened repository
+"""
 function list_projects()
     @repoisopened
     prjlist = readdir(_repoprefix("Projects"))
     return prjlist
 end
 
-function init_project(prjname::AbstractString=randstr(8); git::Bool=false)
+"""
+```
+init_project(prjname; git::Bool=false)
+```
+
+Initialize a project in current repository. if no project name is given, using a random string instead
+"""
+function init_project(prjname::AbstractString=_randstr(8); git::Bool=false)
     @repoisopened
     prjroot = _repoprefix("Projects", prjname)
     mkpath(joinpath(prjroot, ".ra"))
@@ -94,7 +123,14 @@ function init_project(prjname::AbstractString=randstr(8); git::Bool=false)
     return nothing
 end
 
-function open_prj_by_name!(prjname::AbstractString)
+"""
+```
+open_prj_name!(prjname)
+```
+
+Open project specified by name in current opened repository
+"""
+function open_prj_name!(prjname::AbstractString)
     @repoisopened
     prjroot = _repoprefix("Projects", prjname)
     if isdir(prjroot)
@@ -105,7 +141,14 @@ function open_prj_by_name!(prjname::AbstractString)
     return nothing
 end
 
-function open_prj_by_id!()
+"""
+```
+open_prj_id!()
+```
+
+Print out project list in opened repository, and open project specified by number
+"""
+function open_prj_id!()
     @repoisopened
     prjlist = list_projects()
     for i = eachindex(prjlist)
@@ -120,13 +163,27 @@ function open_prj_by_id!()
     return nothing
 end
 
+"""
+```
+close_prj()
+```
+
+Close opened project
+"""
 function close_prj()
     @prjisopened
     SETTING["project_name"] = ""
     return nothing
 end
 
+"""
+```
+open_prj_dir_with_editor()
+```
+
+Open project directory using code editor
+"""
 function open_prj_dir_with_editor()
     @prjisopened
-    open_with_editor(_prjpath())
+    open_with_program("code_editor", _prjpath())
 end

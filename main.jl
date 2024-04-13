@@ -15,10 +15,14 @@ end
 global _SETTING_FILE = abspath(homedir(), ".gcra", "setting.toml")
 
 if isfile(_SETTING_FILE)
-    global SETTING = TOML.parsefile(_SETTING_FILE)
+    if mtime(abspath(@__DIR__, "setting.toml")) > mtime(_SETTING_FILE)
+        global SETTING = TOML.parsefile(abspath(@__DIR__, "setting.toml"))
+    else
+        global SETTING = TOML.parsefile(_SETTING_FILE)
+    end
 else
     global SETTING = TOML.parsefile(abspath(@__DIR__, "setting.toml"))
-    mkpath(joinpath(homedir(), ".gcra"))
+    mkpath(abspath(homedir(), ".gcra"))
     open(io->TOML.print(io, SETTING), _SETTING_FILE, "w")
 end
 

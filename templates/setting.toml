@@ -5,10 +5,11 @@ backup_path = ""
 repository_path = ""
 zotero_db_path = "" # path to zotero db
 project_name = ""
-pdf_viewer = ""
 
 # Schedule
 timezone = "" # for example "America/Toronto"
 
 # other
-editor = ""
+code_editor = ""
+markdown_editor = ""
+pdf_viewer = ""

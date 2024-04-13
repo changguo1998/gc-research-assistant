@@ -14,32 +14,35 @@ macro include_with(tag, expr)
     end
 end
 
-@include_with REPOSITORY_SETTING_DIR_NAME_RM function exit_gcra()
+"""
+```
+exit_gcra()
+```
+
+Exit program and clean temporary file
+"""
+function exit_gcra()
     open(io->TOML.print(io, SETTING), _SETTING_FILE, "w")
     close_repo()
     exit()
 end
 
 
-@include_without CHARPOOL const CHARPOOL = [collect('a':'z'); collect('A':'Z'); collect('0':'9')]
+_randstr(n::Int=8) = String(rand([collect('a':'z'); collect('A':'Z'); collect('0':'9')], n))
 
-@include_without randstr function randstr(n::Int=8)
-    return String(rand(CHARPOOL, n))
-end
+_abspath(p) = replace(abspath(p), "\\"=>"/")
 
-@include_without open_with_editor function open_with_editor(path::AbstractString)
-    if Sys.iswindows()
-        run(Cmd([SETTING["editor"], path]); wait=false)
-    else
-        run(Cmd([SETTING["editor"], path, "&"]))
+_abspath(p, ps...) = replace(abspath(p, ps...), "\\"=>"/")
+
+function open_with_program(prog::String, file::AbstractString)
+    if isempty(prog)
+        @error "$prog is not specified in setting file"
+        return nothing
     end
-end
-
-@include_without open_with_pdf_viewer function open_with_pdf_viewer(path::AbstractString)
     if Sys.iswindows()
-        run(Cmd([SETTING["pdf_viewer"], path]); wait=false)
+        run(Cmd([SETTING[prog], file]); wait=false)
     else
-        run(Cmd([SETTING["pdf_viewer"], path, "&"]))
+        run(Cmd([SETTING[prog], file, "&"]); wait=false)
     end
 end
 

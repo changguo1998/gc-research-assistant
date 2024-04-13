@@ -1,0 +1,15 @@
+
+- journal writting
+    - [x] open journal file in editor
+        - [x] daily
+        - [x] weekly
+        - [x] monthly
+    - [ ] append contents based on template
+- scheduling
+    - [ ] add&remove item
+    - [ ] store item
+    - [ ] alarm
+    - [ ] calendar
+- project management
+- note
+- paper-reading

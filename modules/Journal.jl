@@ -1,16 +1,21 @@
 
-if @isdefined REPOSITORY_MODULE_DIR_RM
+@include_with REPOSITORY_MODULE_DIR_RM begin
     if GALLERY_DIR_NAME_JOURNAL ∉ REPOSITORY_MODULE_DIR_RM
         push!(REPOSITORY_MODULE_DIR_RM, GALLERY_DIR_NAME_JOURNAL)
     end
 end
 
-if !@isdefined GALLERY_DIR_NAME_JOURNAL
-    GALLERY_DIR_NAME_JOURNAL = "Journal"
-end
+GALLERY_DIR_NAME_JOURNAL = "Journal"
 
 TIME_PRECISION_JOURNAL = Day(1)
 
+"""
+```
+open_daily_journal(date::Date=today(UTC))
+```
+
+Open daily format journal in `date`, default is the current time
+"""
 function open_daily_journal(date::Date=today(UTC))
     @repoisopened
     jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
@@ -20,10 +25,16 @@ function open_daily_journal(date::Date=today(UTC))
         t[1] = replace(t[1], "{{date}}"=>string(date))
         open(io->foreach(l->println(io, l), t), jfilepath, "w")
     end
-    open_with_editor(jfilepath)
-    return nothing
+    open_with_program("markdown_editor", jfilepath)
 end
 
+"""
+```
+open_weekly_journal(date::Date=today(UTC))
+```
+
+Open weekly format journal in `date`, default is the current time
+"""
 function open_weekly_journal(date::Date=today(UTC))
     @repoisopened
     d1 = firstdayofweek(date)
@@ -31,8 +42,7 @@ function open_weekly_journal(date::Date=today(UTC))
     jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
         @sprintf("weekly_%04d-%02d.md", year(date), week(date)))
     if !isfile(jfilepath)
-        t = readlines(joinpath(SETTING["repository_path"],
-            REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_weekly.md"))
+        t = readlines(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_weekly.md"))
         s = String[]
         t[1] = replace(t[1],
             "{{yyyy}}"=>@sprintf("%04d", year(d1)),
@@ -44,8 +54,7 @@ function open_weekly_journal(date::Date=today(UTC))
         append!(s, deepcopy(t[1:i-1]))
         for d = d1:Day(1):d2
             local tmp = t[i+1:j-1]
-            dailyfilepath = joinpath(SETTING["repository_path"],
-                GALLERY_DIR_NAME_JOURNAL,
+            dailyfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
                 @sprintf("daily_%04d-%02d-%02d.md", year(d), month(d), day(d)))
             tmp[1] = replace(tmp[1],
                 "{{dayofweek}}"=>dayname(d),
@@ -56,17 +65,22 @@ function open_weekly_journal(date::Date=today(UTC))
         end
         open(io->foreach(l->println(io, l), s), jfilepath, "w")
     end
-    open_with_editor(jfilepath)
-    return nothing
+    open_with_program("markdown_editor", jfilepath)
 end
 
+"""
+```
+open_monthly_journal(date::Date=today(UTC))
+```
+
+Open monthly format journal in `date`, default is the current time
+"""
 function open_monthly_journal(date::Date=today(UTC))
     @repoisopened
     jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
         @sprintf("monthly_%04d-%02d.md", year(date), month(date)))
     if !isfile(jfilepath)
-        t = readlines(joinpath(SETTING["repository_path"],
-            REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_monthly.md"))
+        t = readlines(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_monthly.md"))
         s = String[]
         t[1] = replace(t[1], "{{yearmonth}}"=>@sprintf("%04d-%02d", year(date), month(date)))
         i = findfirst(==("REPEAT"), t)
@@ -90,54 +104,65 @@ function open_monthly_journal(date::Date=today(UTC))
         end
         open(io->foreach(l->println(io, l), s), jfilepath, "w")
     end
-    open_with_editor(jfilepath)
-    return nothing
+    open_with_program("markdown_editor", jfilepath)
 end
 
-function open_journal_template()
+"""
+```
+open_journal_template_dir()
+```
+
+Open directory storing templates
+"""
+function open_journal_template_dir()
     @repoisopened
-    jfilepath = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal.md")
-    open_with_editor(jfilepath)
-    return nothing
+    jfilepath = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates")
+    open_with_program("code_editor", jfilepath)
 end
 
-year_template(d::Date) = @sprintf("# Year %04d", year(d))
+_year_template(d::Date) = @sprintf("# Year %04d", year(d))
 
-month_template(d::Date) = @sprintf("## %s %04d", monthname(d), year(d))
+_month_template(d::Date) = @sprintf("## %s %04d", monthname(d), year(d))
 
-function week_template(d::Date)
+function _week_template(d::Date)
     md1 = monthday(firstdayofweek(d))
     md2 = monthday(lastdayofweek(d))
     return @sprintf("### Week %d, (%02d-%02d ~ %02d-%02d)",
         week(d), md1[1], md1[2], md2[1], md2[2])
 end
 
-function update_seperator!(s::Vector{String}, d::Date)
+function _update_seperator!(s::Vector{String}, d::Date)
     if dayofyear(d) == 1
-        push!(s, year_template(d))
+        push!(s, _year_template(d))
     end
     if dayofmonth(d) == 1
-        push!(s, month_template(d))
+        push!(s, _month_template(d))
     end
     if dayofweek(d) == 1
-        push!(s, week_template(d))
+        push!(s, _week_template(d))
     end
-    return nothing
 end
 
+"""
+```
+gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
+```
+
+Gather daily journal from `d1` to `d2` into a temporary file
+"""
 function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
     s = String[]
     if dayofyear(d1) != 1
-        update_seperator!(s, firstdayofyear(d1))
+        _update_seperator!(s, firstdayofyear(d1))
     end
     if dayofmonth(d1) != 1
-        update_seperator!(s, firstdayofmonth(d1))
+        _update_seperator!(s, firstdayofmonth(d1))
     end
     if dayofweek(d1) != 1
-        update_seperator!(s, firstdayofweek(d1))
+        _update_seperator!(s, firstdayofweek(d1))
     end
     for d = d1:Day(1):d2
-        update_seperator!(s, d)
+        _update_seperator!(s, d)
         dfile = _repoprefix(
             GALLERY_DIR_NAME_JOURNAL,
             @sprintf("daily_%04d-%02d-%02d.md",year(d),month(d),day(d))
@@ -194,7 +219,7 @@ function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
     remain_flag .|= (level .> 3)
     s = s[remain_flag]
     mkpath(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "var"))
-    tmpfile = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "var", "journal_"*randstr(8)*".md")
+    tmpfile = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "var", "journal_"*_randstr(8)*".md")
     open(tmpfile, "w") do io
         for _l in s
             if startswith(_l, "#")
@@ -203,15 +228,32 @@ function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
             println(io, _l)
         end
     end
-    open_with_editor(tmpfile)
+    open_with_program("markdown_editor", tmpfile)
     return nothing
 end
 
+# =================================
+#       project management
+# =================================
+"""
+```
+open_prj_log()
+```
+
+Open log file belong to current project without any change
+"""
 function open_prj_log()
     @prjisopened
-    open_with_editor(_prjprefix(".ra", "log.md"))
+    open_with_program("markdown_editor", _prjprefix(".ra", "log.md"))
 end
 
+"""
+```
+write_prj_log()
+```
+
+Open log file belong to current project, add daily log template
+"""
 function write_prj_log()
     @prjisopened
     logfilepath = _prjprefix(".ra", "log.md")
@@ -233,6 +275,6 @@ function write_prj_log()
             foreach(l->println(io, l), buffer[newline:end])
         end
     end
-    open_with_editor(logfilepath)
+    open_with_program("markdown_editor", logfilepath)
     return nothing
 end
