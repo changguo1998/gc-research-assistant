@@ -259,20 +259,20 @@ function write_prj_log()
     logfilepath = _prjprefix(".ra", "log.md")
     buffer = readlines(logfilepath)
     ct = today(TimeZone(SETTING["timezone"]))
-    newline = "# DATE "*string(ct)
-    inewline = findfirst(startswith("# DATE "), buffer)
+    newline = "## DATE "*string(ct)
+    inewline = findfirst(startswith("## DATE "), buffer)
     if isnothing(inewline)
         open(logfilepath, "w") do io
             foreach(l->println(io, l), buffer)
-            println(io, "---")
+            println(io, "\n---\n")
             println(io, newline)
         end
     elseif newline != buffer[inewline]
         open(logfilepath, "w") do io
-            foreach(l->println(io, l), buffer[1:newline-1])
+            foreach(l->println(io, l), buffer[1:inewline-1])
             println(io, newline)
-            println(io, "---")
-            foreach(l->println(io, l), buffer[newline:end])
+            println(io, "\n---\n")
+            foreach(l->println(io, l), buffer[inewline:end])
         end
     end
     open_with_program("markdown_editor", logfilepath)

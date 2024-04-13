@@ -64,3 +64,12 @@ macro prjisopened()
         end
     end
 end
+
+function rastatus()
+    if !isempty(SETTING["repository_path"])
+        println("Opened repository: ", _repopath())
+    end
+    if !isempty(SETTING["project_name"])
+        println("Opened project: ", _prjpath())
+    end
+end

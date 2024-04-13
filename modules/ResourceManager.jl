@@ -8,7 +8,7 @@
 
 function _repopath()
     @repoisopened
-    return SETTING["repository_path"]
+    return _abspath(SETTING["repository_path"])
 end
 
 _repoprefix(path...) = _abspath(_repopath(), path...)
@@ -115,7 +115,11 @@ function init_project(prjname::AbstractString=_randstr(8); git::Bool=false)
     @repoisopened
     prjroot = _repoprefix("Projects", prjname)
     mkpath(joinpath(prjroot, ".ra"))
-    touch(joinpath(prjroot, ".ra", "log.md"))
+    if !isfile(joinpath(prjroot, ".ra", "log.md"))
+        buffer = readlines(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "log_prj.md"))
+        buffer[1] = replace(buffer[1], "{{prjname}}"=>prjname)
+        open(io->foreach(l->println(io, l), buffer), _abspath(prjroot, ".ra", "log.md"), "w")
+    end
     if git
         run(Cmd(Cmd(["git", "init", "."]); dir=prjroot))
         run(Cmd(Cmd(["git", "add", "."]); dir=prjroot))
@@ -152,11 +156,20 @@ function open_prj_id!()
     @repoisopened
     prjlist = list_projects()
     for i = eachindex(prjlist)
-        println(i, "\t", prjlist[i])
+        if !isempty(SETTING["project_name"])
+            if prjlist[i] == SETTING["project_name"]
+                println(i, "*", "\t", prjlist[i])
+            else
+                println(i, "\t", prjlist[i])
+            end
+        else
+            println(i, "\t", prjlist[i])
+        end
     end
+    print("No.> ")
     i = parse(Int, readline())
     if (i > 0) && (i <= length(prjlist))
-        open_prj_by_name!(prjlist[i])
+        open_prj_name!(prjlist[i])
     else
         @error "number not exist"
     end
