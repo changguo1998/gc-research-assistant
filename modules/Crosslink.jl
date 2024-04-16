@@ -1,5 +1,15 @@
 CROSSLINK_DB = "crosslink.txt"
-BACK_LINK_PREFIX = "BACKLINK "
+BACK_LINK_PREFIX = "<!-- BACKLINK -->"
+
+function _keep_file_in_database(p::String)
+    (dir, fn) = splitdir(_abspath(p))
+    if any(postfix->endswith(fn, postfix), [".md", ".txt", ".pdf"]) &&
+        (!startswith(fn, "http"))
+        return true
+    else
+        return false
+    end
+end
 
 function _scan_brace_pair(brace_list::Vector{Tuple{Int,Char,Int}})
     if length(brace_list) < 4
@@ -70,7 +80,7 @@ function _get_links_in_file(file::AbstractString)
     (fdir, _) = splitdir(file)
     for l in possible_line
         for str in _get_link_to(l)
-            if startswith(str, "http") || (!endswith(str, ".md"))
+            if !_keep_file_in_database(str)
                 continue
             end
             if isabspath(str)
@@ -175,23 +185,55 @@ function links_from_file(file::String)
     return lkfrom
 end
 
+function _file_in_path(file::String, path::String)
+    f = splitpath(_abspath(file))
+    p = splitpath(_abspath(path))
+    if length(f) <= length(p)
+        return false
+    end
+    flag = true
+    for i = eachindex(p)
+        flag &= f[i] == p[i]
+    end
+    return flag
+end
+
 """
 ```
-append_backlink(file::String)
+update_backlink(file::String)
 ```
 
-At the end of `file`, append links to files that link to the specified `file`
+At the end of `file`, update links to files that link to the specified `file`
 """
-function append_backlink(file::String)
+function update_backlink(file::String)
     @repoisopened
     blinks = links_to_file(_abspath_in_repository(file))
     repopathlen = length(splitpath(_repopath()))
+    buffer = readlines(file)
+    bufend = ""
+    open(file, "w") do io
+        for l in buffer
+            if !startswith(l, BACK_LINK_PREFIX)
+                println(io, l)
+                bufend = l
+            end
+        end
+    end
     open(file, "a") do io
-        println(io, "\n---\n")
+        if !isempty(bufend)
+            println(io, "\n")
+        end
+        println(io, BACK_LINK_PREFIX, "---")
+        println(io, BACK_LINK_PREFIX)
+        println(io, BACK_LINK_PREFIX, "Links to this file:")
         for lk in blinks
             lkpaths = splitpath(lk)
-            println(io, BACK_LINK_PREFIX, '[', join(lkpaths[repopathlen+1:end], '/'), ']',
-                '(', replace(lk, "\\"=>"/"), ')')
+            if _file_in_path(lk, _repopath())
+                println(io, BACK_LINK_PREFIX, "[", join(lkpaths[repopathlen+1:end], '/'),
+                    "](", _abspath(lk), ')')
+            else
+                println(io, BACK_LINK_PREFIX, "[(ext) ", lkpaths[end], "](", _abspath(lk), ')')
+            end
         end
     end
 end

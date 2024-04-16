@@ -30,13 +30,13 @@ function init_repo(dirc::String)
     for dir in REPOSITORY_MODULE_DIR_RM
         mkpath(joinpath(dirc, dir))
     end
-    mkpath(joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates"))
-    for f in readdir(abspath(@__DIR__, "..", "templates"))
-        if (f != "setting.toml") && (!isfile(joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f)))
-            cp(joinpath(@__DIR__, "..", "templates", f),
-            joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f))
-        end
-    end
+    # mkpath(joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates"))
+    # for f in readdir(abspath(@__DIR__, "..", "templates"))
+    #     if (f != "setting.toml") && (!isfile(joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f)))
+    #         cp(joinpath(@__DIR__, "..", "templates", f),
+    #         joinpath(dirc, REPOSITORY_SETTING_DIR_NAME_RM, "templates", f))
+    #     end
+    # end
     return nothing
 end
 
@@ -116,8 +116,7 @@ function init_project(prjname::AbstractString=_randstr(8); git::Bool=false)
     prjroot = _repoprefix("Projects", prjname)
     mkpath(joinpath(prjroot, ".ra"))
     if !isfile(joinpath(prjroot, ".ra", "log.md"))
-        buffer = readlines(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "log_prj.md"))
-        buffer[1] = replace(buffer[1], "{{prjname}}"=>prjname)
+        buffer = template_project_log_content(prjname)
         open(io->foreach(l->println(io, l), buffer), _abspath(prjroot, ".ra", "log.md"), "w")
     end
     if git

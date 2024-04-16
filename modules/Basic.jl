@@ -30,9 +30,7 @@ end
 
 _randstr(n::Int=8) = String(rand([collect('a':'z'); collect('A':'Z'); collect('0':'9')], n))
 
-_abspath(p) = replace(abspath(p), "\\"=>"/")
-
-_abspath(p, ps...) = replace(abspath(p, ps...), "\\"=>"/")
+_abspath(ps...) = replace(abspath(ps...), "\\"=>"/")
 
 function open_with_program(prog::String, file::AbstractString)
     if isempty(prog)

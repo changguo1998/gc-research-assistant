@@ -9,103 +9,47 @@ GALLERY_DIR_NAME_JOURNAL = "Journal"
 
 TIME_PRECISION_JOURNAL = Day(1)
 
+_utctoday() = today(TimeZone("UTC"))
+
+function open_periodic_journal(pathfunc::Function, templatefunc::Function, date::Date=_utctoday())
+    @repoisopened
+    jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL, pathfunc(date))
+    if !isfile(jfilepath)
+        open(io->foreach(l->println(io, l), templatefunc(date)), jfilepath, "w")
+    end
+    open_with_program("markdown_editor", jfilepath)
+end
+
 """
 ```
-open_daily_journal(date::Date=today(UTC))
+open_daily_journal(date::Date=_utctoday())
 ```
 
 Open daily format journal in `date`, default is the current time
 """
-function open_daily_journal(date::Date=today(UTC))
-    @repoisopened
-    jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
-        @sprintf("daily_%04d-%02d-%02d.md", year(date), month(date), day(date)))
-    if !isfile(jfilepath)
-        t = readlines(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_daily.md"))
-        t[1] = replace(t[1], "{{date}}"=>string(date))
-        open(io->foreach(l->println(io, l), t), jfilepath, "w")
-    end
-    open_with_program("markdown_editor", jfilepath)
-end
+open_daily_journal(date::Date=_utctoday()) = open_periodic_journal(template_journal_daily_file,
+    template_journal_daily_content, date)
 
 """
 ```
-open_weekly_journal(date::Date=today(UTC))
+open_weekly_journal(date::Date=_utctoday())
 ```
 
 Open weekly format journal in `date`, default is the current time
 """
-function open_weekly_journal(date::Date=today(UTC))
-    @repoisopened
-    d1 = firstdayofweek(date)
-    d2 = lastdayofweek(date)
-    jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
-        @sprintf("weekly_%04d-%02d.md", year(date), week(date)))
-    if !isfile(jfilepath)
-        t = readlines(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_weekly.md"))
-        s = String[]
-        t[1] = replace(t[1],
-            "{{yyyy}}"=>@sprintf("%04d", year(d1)),
-            "{{ww}}"=>@sprintf("%02d", week(date)),
-            "{{date1}}"=>@sprintf("%s", string(d1)),
-            "{{date2}}"=>@sprintf("%s", string(d2)))
-        i = findfirst(==("REPEAT"), t)
-        j = findfirst(==("END"), t)
-        append!(s, deepcopy(t[1:i-1]))
-        for d = d1:Day(1):d2
-            local tmp = t[i+1:j-1]
-            dailyfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
-                @sprintf("daily_%04d-%02d-%02d.md", year(d), month(d), day(d)))
-            tmp[1] = replace(tmp[1],
-                "{{dayofweek}}"=>dayname(d),
-                "{{date}}"=>string(d),
-                "{{pathtodailyjournal}}"=>dailyfilepath)
-            push!(s, "")
-            append!(s, deepcopy(tmp))
-        end
-        open(io->foreach(l->println(io, l), s), jfilepath, "w")
-    end
-    open_with_program("markdown_editor", jfilepath)
-end
+open_weekly_journal(date::Date=_utctoday()) = open_periodic_journal(template_journal_weekly_file,
+template_journal_weekly_content, date)
 
 """
 ```
-open_monthly_journal(date::Date=today(UTC))
+open_monthly_journal(date::Date=_utctoday())
 ```
 
 Open monthly format journal in `date`, default is the current time
 """
-function open_monthly_journal(date::Date=today(UTC))
-    @repoisopened
-    jfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
-        @sprintf("monthly_%04d-%02d.md", year(date), month(date)))
-    if !isfile(jfilepath)
-        t = readlines(_repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates", "journal_monthly.md"))
-        s = String[]
-        t[1] = replace(t[1], "{{yearmonth}}"=>@sprintf("%04d-%02d", year(date), month(date)))
-        i = findfirst(==("REPEAT"), t)
-        j = findfirst(==("END"), t)
-        append!(s, deepcopy(t[1:i-1]))
-        m1 = firstdayofmonth(date)
-        m31= lastdayofmonth(date)
-        d1 = firstdayofweek(m1)
-        d2 = firstdayofweek(m31)
-        for d = d1:Day(7):d2
-            local tmp = t[i+1:j-1]
-            wfilepath = _repoprefix(GALLERY_DIR_NAME_JOURNAL,
-                @sprintf("weekly_%04d-%02d.md", year(d), week(d)))
-            tmp[1] = replace(tmp[1],
-                "{{weekofyear}}"=>week(d),
-                "{{date1}}"=>string(firstdayofweek(d)),
-                "{{date2}}"=>string(lastdayofweek(d)),
-                "{{pathtoweeklyjournal}}"=>wfilepath)
-            push!(s, "")
-            append!(s, deepcopy(tmp))
-        end
-        open(io->foreach(l->println(io, l), s), jfilepath, "w")
-    end
-    open_with_program("markdown_editor", jfilepath)
-end
+open_monthly_journal(date::Date=_utctoday()) = open_periodic_journal(template_journal_monthly_file,
+template_journal_monthly_content, date)
+
 
 """
 ```
