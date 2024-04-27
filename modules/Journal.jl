@@ -94,7 +94,7 @@ gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
 
 Gather daily journal from `d1` to `d2` into a temporary file
 """
-function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
+function gather_journal(d1::Date=_utctoday()-Day(7), d2::Date=_utctoday())
     s = String[]
     if dayofyear(d1) != 1
         _update_seperator!(s, firstdayofyear(d1))
@@ -112,7 +112,8 @@ function gather_journal(d1::Date=today(UTC)-Day(7), d2::Date=today(UTC))
             @sprintf("daily_%04d-%02d-%02d.md",year(d),month(d),day(d))
         )
         if isfile(dfile)
-            append!(s, readlines(dfile))
+            fbuffer = readlines(dfile)
+            append!(s, filter(!startswith(BACK_LINK_PREFIX), fbuffer))
         end
     end
 

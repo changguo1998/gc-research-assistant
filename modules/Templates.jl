@@ -3,7 +3,7 @@
 template_journal_daily_file(date::Date) =  @sprintf("daily_%04d-%02d-%02d.md", year(date), month(date), day(date))
 
 function template_journal_daily_content(date::Date)
-    return [string(date), "", "- [ ] item1", "- [ ] item2", "- [ ] ..."]
+    return ["#### "*string(date), "", "- [ ] item1", "- [ ] item2", "- [ ] ..."]
 end
 
 template_journal_weekly_file(date::Date) = @sprintf("weekly_%04d-%02d.md", year(date), week(date))
