@@ -13,6 +13,8 @@ end
 
 _repoprefix(path...) = _abspath(_repopath(), path...)
 
+_repohiddendirprefix(path...) = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, path...)
+
 """
 ```
 init_repo(dirc::String)
@@ -67,6 +69,9 @@ Close current repository if any repository is opened
 function close_repo()
     @repoisopened
     close_prj()
+    update_note_link_to_zotero_pdfs()
+    dump_crosslink_db_file()
+    dump_modified_date()
     varpath = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "var")
     if isdir(varpath)
         @info "cleaning temporary files"
@@ -155,14 +160,15 @@ function open_prj_id!()
     @repoisopened
     prjlist = list_projects()
     for i = eachindex(prjlist)
+        istr = @sprintf("%3d", i)
         if !isempty(SETTING["project_name"])
             if prjlist[i] == SETTING["project_name"]
-                println(i, "*", "\t", prjlist[i])
+                println(istr, "*", "\t", prjlist[i])
             else
-                println(i, "\t", prjlist[i])
+                println(istr, "\t", prjlist[i])
             end
         else
-            println(i, "\t", prjlist[i])
+            println(istr, "\t", prjlist[i])
         end
     end
     print("No.> ")

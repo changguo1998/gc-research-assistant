@@ -16,16 +16,18 @@ end
 
 """
 ```
-exit_gcra()
+raexit(),raquit()
 ```
 
 Exit program and clean temporary file
 """
-function exit_gcra()
+function raexit()
     open(io->TOML.print(io, SETTING), _SETTING_FILE, "w")
     close_repo()
     exit()
 end
+
+raquit = raexit
 
 
 _randstr(n::Int=8) = String(rand([collect('a':'z'); collect('A':'Z'); collect('0':'9')], n))
@@ -70,4 +72,16 @@ function rastatus()
     if !isempty(SETTING["project_name"])
         println("Opened project: ", _prjpath())
     end
+end
+
+function listdirinpattern(pat::Function, dir::String)
+    list = String[]
+    for (r, ds, fs) in walkdir(dir)
+        for f in fs
+            if pat(f)
+                push!(list, _abspath(r, f))
+            end
+        end
+    end
+    return list
 end

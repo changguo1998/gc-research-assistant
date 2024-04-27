@@ -123,13 +123,13 @@ end
 @include_with _repoprefix begin
 """
 ```
-dump_crosslink_db_file()
+dump_crosslink_db_file(filepath)
 ```
-Update crosslink database file
+Update crosslink database file. Default is crosslink.txt in repository hidden path.
 """
-function dump_crosslink_db_file()
+function dump_crosslink_db_file(filepath::String=_repohiddendirprefix(CROSSLINK_DB))
     @repoisopened
-    open(_repoprefix("Crosslink.txt"), "w") do io
+    open(filepath, "w") do io
         for p in _build_cross_link_db()
             println(io, p[1], ';', p[2])
         end

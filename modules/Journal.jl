@@ -5,7 +5,7 @@
     end
 end
 
-GALLERY_DIR_NAME_JOURNAL = "Journal"
+GALLERY_DIR_NAME_JOURNAL = "Journals"
 
 TIME_PRECISION_JOURNAL = Day(1)
 

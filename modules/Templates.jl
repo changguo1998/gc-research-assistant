@@ -42,3 +42,12 @@ end
 function template_project_log_content(prjname::String)
     return ["# Project Log: "*prjname]
 end
+
+LINK_TO_ZOTERO_START = "{{ZOT:"
+LINK_TO_ZOTERO_STOP = ":ZOT}}"
+
+function template_zotero_link(tag::String)
+    fpath = _zotero_get_pdf_path(tag)
+    splitpath = splitdir(fpath)
+    return join(["[", replace(splitpath[2], "%20"=>" "), "](", fpath, ")"])
+end
