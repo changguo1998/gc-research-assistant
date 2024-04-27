@@ -70,13 +70,14 @@ function close_repo()
     @repoisopened
     close_prj()
     update_note_link_to_zotero_pdfs()
+    update_repo_backlink()
     dump_crosslink_db_file()
-    dump_modified_date()
     varpath = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "var")
     if isdir(varpath)
         @info "cleaning temporary files"
         rm(varpath, recursive=true)
     end
+    dump_modified_date()
     SETTING["repository_path"] = ""
     return nothing
 end

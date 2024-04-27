@@ -34,6 +34,11 @@ _randstr(n::Int=8) = String(rand([collect('a':'z'); collect('A':'Z'); collect('0
 
 _abspath(ps...) = replace(abspath(ps...), "\\"=>"/")
 
+"""
+```
+open_with_program(prog_key, filepath)
+```
+"""
 function open_with_program(prog::String, file::AbstractString)
     if isempty(prog)
         @error "$prog is not specified in setting file"
@@ -74,6 +79,11 @@ function rastatus()
     end
 end
 
+"""
+```
+listdirinpattern(pattern, dir)
+```
+"""
 function listdirinpattern(pat::Function, dir::String)
     list = String[]
     for (r, ds, fs) in walkdir(dir)

@@ -237,3 +237,10 @@ function update_backlink(file::String)
         end
     end
 end
+
+function update_repo_backlink()
+    @repoisopened
+    list = listdirinpattern(endswith(".md"), _repopath())
+    foreach(update_backlink, list)
+    return nothing
+end
