@@ -10,6 +10,17 @@ function after_period(t::Period)
     return round(now(), TIME_PRECISION_SCHEDULE) + t
 end
 
+"""
+```
+struct Todo
+    content::String
+    start::DateTime
+    stop::DateTime
+    status::Symbol
+    subitem::Vector{Todo}
+end
+```
+"""
 struct Todo
     content::String
     start::DateTime
@@ -18,6 +29,13 @@ struct Todo
     subitem::Vector{Todo}
 end
 
+"""
+```
+Todo(content1, start1, stop1, status1, subitem1;
+     content, start, stop, status, subitem)
+```
+init a `Todo` object in a more general way. keywork variable will overwrite the same name positioned variable.
+"""
 function Todo(  content1::AbstractString="",
                 start1::DateTime=LONG_AFTER_SCHEDULE,
                 stop1::DateTime=LONG_AFTER_SCHEDULE,
@@ -52,6 +70,12 @@ function print(io::IO, todo::Todo)
     return nothing
 end
 
+"""
+```
+parseTodo_string(s)
+```
+parse a string into `Todo` object
+"""
 function parseTodo_string(s::AbstractString)
     level = zeros(Int, length(s))
     lcurrent = 0

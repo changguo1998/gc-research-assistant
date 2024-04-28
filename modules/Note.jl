@@ -7,7 +7,7 @@ GALLERY_DIR_NAME_NOTE = "Notes"
     end
 end
 
-function update_note_link_pattern(file::String, patstart::String, patstop::String, rep::Function)
+function _update_note_link_pattern(file::String, patstart::String, patstop::String, rep::Function)
     buffer1 = readlines(file)
     buffer2 = String[]
     for l in buffer1
@@ -34,11 +34,17 @@ function update_note_link_pattern(file::String, patstart::String, patstop::Strin
     return nothing
 end
 
+"""
+```
+update_note_link_to_zotero_pdfs()
+```
+replace abbrevation of links to absolute path
+"""
 function update_note_link_to_zotero_pdfs()
     @repoisopened
     notelist = list_notes()
     for f in notelist
-        update_note_link_pattern(f, LINK_TO_ZOTERO_START, LINK_TO_ZOTERO_STOP, template_zotero_link)
+        _update_note_link_pattern(f, LINK_TO_ZOTERO_START, LINK_TO_ZOTERO_STOP, template_zotero_link)
     end
     return nothing
 end
@@ -47,6 +53,12 @@ _notepath() = _repoprefix(GALLERY_DIR_NAME_NOTE)
 
 _noteprefix(p...) = _repoprefix(GALLERY_DIR_NAME_NOTE, p...)
 
+"""
+```
+list_notes(pat)
+```
+return md file list contains `pat` in `Notes` dir. If `pat` is empty(default), return all files.
+"""
 function list_notes(pat::String="")
     @repoisopened
     list1 = listdirinpattern(endswith(".md"), _notepath())
@@ -57,6 +69,12 @@ function list_notes(pat::String="")
     end
 end
 
+"""
+```
+open_note_name(tag::String)
+```
+open md file named `tag` in `Notes` dir.
+"""
 function open_note_name(tag::String)
     @repoisopened
     if endswith(tag, ".md")
@@ -66,6 +84,12 @@ function open_note_name(tag::String)
     end
 end
 
+"""
+```
+open_note_id(pat::String="")
+```
+list notes with number, and open the note file according to input number
+"""
 function open_note_id(pat::String="")
     list = list_notes(pat)
     N = length(splitpath(_notepath()))

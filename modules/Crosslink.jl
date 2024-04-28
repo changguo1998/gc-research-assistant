@@ -185,19 +185,6 @@ function links_from_file(file::String)
     return lkfrom
 end
 
-function _file_in_path(file::String, path::String)
-    f = splitpath(_abspath(file))
-    p = splitpath(_abspath(path))
-    if length(f) <= length(p)
-        return false
-    end
-    flag = true
-    for i = eachindex(p)
-        flag &= f[i] == p[i]
-    end
-    return flag
-end
-
 """
 ```
 update_backlink(file::String)
@@ -238,9 +225,37 @@ function update_backlink(file::String)
     end
 end
 
+"""
+```
+_mdfile_update_backlink(fname::String)
+```
+check if the file's backlink is going to updated
+"""
+function _mdfile_update_backlink(fname::String)
+    if _file_in_path(fname, _repoprefix(GALLERY_DIR_NAME_JOURNAL))
+        return true
+    end
+    if _file_in_path(fname, _repoprefix(GALLERY_DIR_NAME_NOTE))
+        return true
+    end
+    fp = splitpath(_abspath(fname))
+    if fp[end-1] == ".ra"
+        return true
+    end
+    return false
+end
+
+"""
+```
+update_repo_backlink()
+```
+
+update backlinks of md files in the opened repository. Only md files in
+`Notes`, `Journals`, and `Projects/prjname/.ra/` will be updated
+"""
 function update_repo_backlink()
     @repoisopened
     list = listdirinpattern(endswith(".md"), _repopath())
-    foreach(update_backlink, list)
+    foreach(update_backlink, filter(_mdfile_update_backlink, list))
     return nothing
 end

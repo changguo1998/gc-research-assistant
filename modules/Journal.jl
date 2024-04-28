@@ -1,11 +1,11 @@
 
+GALLERY_DIR_NAME_JOURNAL = "Journals"
+
 @include_with REPOSITORY_MODULE_DIR_RM begin
     if GALLERY_DIR_NAME_JOURNAL ∉ REPOSITORY_MODULE_DIR_RM
         push!(REPOSITORY_MODULE_DIR_RM, GALLERY_DIR_NAME_JOURNAL)
     end
 end
-
-GALLERY_DIR_NAME_JOURNAL = "Journals"
 
 TIME_PRECISION_JOURNAL = Day(1)
 
@@ -50,7 +50,7 @@ Open monthly format journal in `date`, default is the current time
 open_monthly_journal(date::Date=_utctoday()) = open_periodic_journal(template_journal_monthly_file,
 template_journal_monthly_content, date)
 
-
+#=
 """
 ```
 open_journal_template_dir()
@@ -63,6 +63,7 @@ function open_journal_template_dir()
     jfilepath = _repoprefix(REPOSITORY_SETTING_DIR_NAME_RM, "templates")
     open_with_program("code_editor", jfilepath)
 end
+=#
 
 _year_template(d::Date) = @sprintf("# Year %04d", year(d))
 

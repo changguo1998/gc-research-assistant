@@ -70,6 +70,12 @@ macro prjisopened()
     end
 end
 
+"""
+```
+rastatus()
+```
+print current repository and project if they are opened
+"""
 function rastatus()
     if !isempty(SETTING["repository_path"])
         println("Opened repository: ", _repopath())
@@ -94,4 +100,23 @@ function listdirinpattern(pat::Function, dir::String)
         end
     end
     return list
+end
+
+"""
+```
+_file_in_path(file::String, path::String)
+```
+check if `file` in `path` or subdirectories of `path`
+"""
+function _file_in_path(file::String, path::String)
+    f = splitpath(_abspath(file))
+    p = splitpath(_abspath(path))
+    if length(f) <= length(p)
+        return false
+    end
+    flag = true
+    for i = eachindex(p)
+        flag &= f[i] == p[i]
+    end
+    return flag
 end
