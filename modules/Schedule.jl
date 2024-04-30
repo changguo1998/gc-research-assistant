@@ -229,9 +229,9 @@ function add_todo(;content::String="",
     status::Symbol=TODO_STATUS_LIST_SCHEDULE[1])
     @repoisopened
     t_todo = Todo(content, start, stop, status)
-    fname = "TODO"*_randstr(16)*".txt"
+    fname = "TODO"*_randstr(16)*".md"
     while isfile(_todoprefix(fname)) || isfile(_todoarchiveprefix(fname))
-        fname = "TODO"*_randstr(16)*".txt"
+        fname = "TODO"*_randstr(16)*".md"
     end
     _dump_todo_to_file(_todoprefix(fname), t_todo)
     open_with_program("code_editor", _todoprefix(fname))
