@@ -8,6 +8,7 @@ project_name = ""
 
 # Schedule
 timezone = "" # for example "America/Toronto"
+todo_print_format = "" # short/long
 
 # other
 code_editor = ""
