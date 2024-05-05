@@ -4,12 +4,17 @@
         - [x] daily
         - [x] weekly
         - [x] monthly
-    - [ ] append contents based on template
+    - [x] append contents based on template
 - scheduling
-    - [ ] add&remove item
-    - [ ] store item
+    - [x] add&remove todo
+    - [x] store item
     - [ ] alarm
     - [ ] calendar
+    - [ ] periodic todo
 - project management
 - note
+    - [x] add and remove
+    - [ ] replace link using relative path to repository
+- cross link
+- backup
 - paper-reading

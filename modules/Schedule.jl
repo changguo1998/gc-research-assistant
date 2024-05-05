@@ -126,24 +126,35 @@ _todoarchivepath() = _repoprefix(GALLERY_DIR_NAME_TODO_ARCHIVE)
 _todoarchiveprefix(p...) = _repoprefix(GALLERY_DIR_NAME_TODO_ARCHIVE, p...)
 
 function _todo_printcmd(todo::Todo, indent::String="", indent_n::Integer=4)
+    if SETTING["todo_print_format"] ∉ ("long", "short")
+        @error "set global SETTING[\"todo_print_format\"] to \"long\" or \"short\""
+        return nothing
+    end
+    statw= maximum(length, String.(TODO_STATUS_LIST_SCHEDULE))
+    printstyled(indent, String(todo.status), " "^(statw-length(String(todo.status))+1),
+        color=TODO_STATUS_COLOR[todo.status])
     if todo.start < LONG_AFTER_SCHEDULE
-        Base.print(indent, todo.start)
+        Base.print(todo.start)
     else
-        Base.print(indent, "?")
+        Base.print("?")
     end
-    Base.print("  -->  ")
+    Base.print(" --> ")
     if todo.stop < LONG_AFTER_SCHEDULE
-        println(todo.stop)
+        Base.print(todo.stop)
     else
-        println("?")
+        Base.print("?")
     end
-    printstyled(indent, String(todo.status), "\n", color=TODO_STATUS_COLOR[todo.status])
     buf = split(todo.content, '\n', keepempty=true)
-    for l in buf
-        println(indent, "  ", l)
-    end
-    for s in todo.subitem
-        _todo_printcmd(s, indent*" "^indent_n, indent_n)
+    if SETTING["todo_print_format"] == "long"
+        Base.print('\n')
+        for l in buf
+            println(indent, "  ", l)
+        end
+        for s in todo.subitem
+            _todo_printcmd(s, indent*" "^indent_n, indent_n)
+        end
+    elseif SETTING["todo_print_format"] == "short"
+        println(" ", buf[1])
     end
     return nothing
 end
@@ -209,8 +220,12 @@ function printall_todo(tl::Union{Vector{Tuple{String,Todo}},Nothing}=nothing)
         tl = list_todo()
     end
     for i = eachindex(tl)
-        println("-"^8)
-        println(i, "\t", tl[i][1])
+        if SETTING["todo_print_format"] == "long"
+            println("-"^8)
+            println(i, "\t", tl[i][1])
+        elseif SETTING["todo_print_format"] == "short"
+            Base.print(@sprintf("%3d ", i))
+        end
         _todo_printcmd(tl[i][2])
     end
     return nothing
