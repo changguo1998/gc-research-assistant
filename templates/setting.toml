@@ -4,6 +4,7 @@ backup_path = ""
 # Resource Manager
 repository_path = ""
 zotero_db_path = "" # path to zotero db
+file_explorer = "" # windows: explorer.exe / linux: nautilus
 project_name = ""
 
 # Schedule

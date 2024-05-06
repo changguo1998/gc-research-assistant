@@ -12,9 +12,16 @@
     - [ ] calendar
     - [ ] periodic todo
 - project management
+    - [ ] open directory
 - note
     - [x] add and remove
     - [ ] replace link using relative path to repository
 - cross link
+    - [ ] append backlink
 - backup
-- paper-reading
+    - [x] log modified time
+    - [ ] incremental backup
+- literature management
+    - [ ] import paper
+    - [ ] paper meta data
+    - [ ] search
