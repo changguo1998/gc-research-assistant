@@ -1,6 +1,6 @@
 
-TODO_STATUS_LIST_SCHEDULE = (:ongoing, :noted, :finished, :failed)
-TODO_STATUS_COLOR = Dict(:ongoing=>:yellow, :noted=>:normal, :finished=>:green, :failed=>:red)
+TODO_STATUS_LIST_SCHEDULE = (:none, :ongoing, :noted, :finished, :failed)
+TODO_STATUS_COLOR = Dict(:none=>:white, :ongoing=>:yellow, :noted=>:blue, :finished=>:green, :failed=>:red)
 TIME_PRECISION_SCHEDULE = Second(1)
 LONG_AGO_SCHEDULE = DateTime(1000)
 LONG_AFTER_SCHEDULE = DateTime(3000)
@@ -23,99 +23,106 @@ end
 
 """
 ```
-mutable struct Todo
-    content::String
-    start::DateTime
-    stop::DateTime
-    status::Symbol
-    subitem::Vector{Todo}
+struct PeriodicInterval
+    type::Symbol
+    period::Int
 end
 ```
 """
-mutable struct Todo
-    content::String
-    start::DateTime
-    stop::DateTime
-    status::Symbol
-    subitem::Vector{Todo}
+struct PeriodicInterval
+    type::Symbol
+    period::Int
+end
+
+function PeriodicInterval(type::Union{Symbol,AbstractString}, period::Integer)
+    _type = Symbol(lowercase(type))
+    if _type == :day
+        if period < 1
+            @error "daily period must be larger than 0"
+            return nothing
+        end
+    elseif _type == :week
+        if (period < 1) || (period > 7)
+            @error "weekly period must beteen 1 and 7"
+            return nothing
+        end
+    elseif _type == :month
+        if (period < 1) || (period > 31)
+            @error "monthly period must beteen 1 and 31"
+            return nothing
+        end
+    else
+        @error "type of period must be one of :day, :week, :month"
+        return nothing
+    end
+    return PeriodicInterval(_type, Int(period))
+end
+
+function is_scheduled_on_date(date::Date, refdate::Date, period::PeriodicInterval)
+    if period.type == :day
+        itvl = mod(round(date-refdate, Day), Day(period.period))
+        if itvl == Day(0)
+            return true
+        end
+    elseif period.type == :week
+        if dayofweek(date) == period.period
+            return true
+        end
+    elseif period.type == :month
+        if dayofmonth(date) == period.period
+            return true
+        end
+    end
+    return false
 end
 
 """
 ```
-Todo(content1, start1, stop1, status1, subitem1;
-     content, start, stop, status, subitem) -> Todo
+struct Todo
+    content::String
+    start::DateTime
+    stop::DateTime
+    status::Symbol
+    period::Vector{PeriodicInterval}
+end
+```
+"""
+struct Todo
+    content::String
+    start::DateTime
+    stop::DateTime
+    status::Symbol
+    period::Vector{PeriodicInterval}
+end
+
+"""
+```
+Todo(content1, start1, stop1, status1, subitem1, period1;
+     content, start, stop, status, period) -> Todo
 ```
 init a `Todo` object in a more general way. keywork variable will overwrite the same name positioned variable.
 """
 function Todo(  content1::AbstractString="",
-                start1::DateTime=LONG_AFTER_SCHEDULE,
+                start1::DateTime=LONG_AGO_SCHEDULE,
                 stop1::DateTime=LONG_AFTER_SCHEDULE,
                 status1::Union{Symbol,AbstractString}=TODO_STATUS_LIST_SCHEDULE[1],
-                subitem1::Vector{Todo}=Todo[];
+                period1::Vector{PeriodicInterval}=PeriodicInterval[];
                 content::AbstractString="",
-                start::DateTime=LONG_AFTER_SCHEDULE,
+                start::DateTime=LONG_AGO_SCHEDULE,
                 stop::DateTime=LONG_AFTER_SCHEDULE,
                 status::Union{Symbol,AbstractString}=TODO_STATUS_LIST_SCHEDULE[1],
-                subitem::Vector{Todo}=Todo[])
+                period::Vector{PeriodicInterval}=PeriodicInterval[])
     _c = String(isempty(content1) ? content : content1)
-    _start = (start1 == LONG_AFTER_SCHEDULE) ? start : start1
+    _start = (start1 == LONG_AGO_SCHEDULE) ? start : start1
     _stop = (stop1 == LONG_AFTER_SCHEDULE) ? stop : stop1
     _status = (Symbol(status1) == TODO_STATUS_LIST_SCHEDULE[1]) ? Symbol(status) : Symbol(status1)
-    _sub = isempty(subitem1) ? subitem : subitem1
+    _period = isempty(period1) ? period : period1
 
     if !(_status in TODO_STATUS_LIST_SCHEDULE)
         error("status must be one of $TODO_STATUS_LIST_SCHEDULE")
     end
-    return Todo(String(_c), _start, _stop, _status, _sub)
+    return Todo(String(_c), _start, _stop, _status, _period)
 end
-
-function print(io::IO, todo::Todo)
-    Base.print(io, '(', todo.content, "%")
-    Base.print(io, todo.start, "%")
-    Base.print(io, todo.stop, "%")
-    Base.print(io, todo.status, "%")
-    for t in todo.subitem
-        print(io, t)
-    end
-    Base.print(io, ")")
-    return nothing
-end
-
-"""
-```
-parseTodo_string(s)
-```
-parse a string into `Todo` object
-"""
-function parseTodo_string(s::AbstractString)
-    level = zeros(Int, length(s))
-    lcurrent = 0
-    for i = eachindex(s)
-        if s[i] == '('
-            lcurrent += 1
-        end
-        level[i] = lcurrent
-        if s[i] == ')'
-            lcurrent -= 1
-        end
-    end
-    # println(s)
-    tl = split(s[findall(level.==1)][2:end-1], '%', keepempty=false)
-    c = String(tl[1])
-    start = DateTime(tl[2])
-    stop = DateTime(tl[3])
-    st = Symbol(tl[4])
-    isubstart = findall( (level .== 2) .& (collect(s) .== '('))
-    isubend = findall( (level .== 2) .& (collect(s) .== ')'))
-    if !isempty(isubend)
-        subs = map((i, j)->parseTodo_string(s[i:j]), isubstart, isubend)
-    else
-        subs = Todo[]
-    end
-    return Todo(c, start, stop, st, subs)
-end
-
-==(a::Todo, b::Todo) = string(a) == string(b)
 
 _todopath()= _repoprefix(GALLERY_DIR_NAME_TODO)
 
@@ -133,25 +140,28 @@ function _todo_printcmd(todo::Todo, indent::String="", indent_n::Integer=4)
     statw= maximum(length, String.(TODO_STATUS_LIST_SCHEDULE))
     printstyled(indent, String(todo.status), " "^(statw-length(String(todo.status))+1),
         color=TODO_STATUS_COLOR[todo.status])
-    if todo.start < LONG_AFTER_SCHEDULE
-        Base.print(todo.start)
+    if todo.start > LONG_AGO_SCHEDULE
+        print(todo.start)
     else
-        Base.print("?")
+        print(" "^9, "?", " "^9)
     end
-    Base.print(" --> ")
+    print(" -> ")
     if todo.stop < LONG_AFTER_SCHEDULE
-        Base.print(todo.stop)
+        print(todo.stop)
     else
-        Base.print("?")
+        print(" "^9, "?", " "^9)
     end
     buf = split(todo.content, '\n', keepempty=true)
     if SETTING["todo_print_format"] == "long"
-        Base.print('\n')
+        if !isempty(todo.period)
+            print('\n')
+            for p in todo.period
+                print(" ", p.type, p.period)
+            end
+        end
+        print('\n')
         for l in buf
             println(indent, "  ", l)
-        end
-        for s in todo.subitem
-            _todo_printcmd(s, indent*" "^indent_n, indent_n)
         end
     elseif SETTING["todo_print_format"] == "short"
         println(" ", buf[1])
@@ -159,22 +169,40 @@ function _todo_printcmd(todo::Todo, indent::String="", indent_n::Integer=4)
     return nothing
 end
 
+function _scan_keyword(buf::Vector{String}, keyword::String)
+    bufl = String[]
+    for l = buf
+        if startswith(l, keyword)
+            i = findfirst(' ', l)
+            push!(bufl, String(l[i+1:end]))
+        end
+    end
+    return bufl
+end
+
 function _scan_todo_from_file(filename::String)
     l = readlines(filename)
     start = let
-        b = split(l[1], " ", keepempty=false)
-        DateTime(b[2])
+        b = _scan_keyword(l, "START")
+        DateTime(b[1])
     end
     stop = let
-        b = split(l[2], " ", keepempty=false)
-        DateTime(b[2])
+        b = _scan_keyword(l, "STOP")
+        DateTime(b[1])
     end
     status = let
-        b = split(l[3], " ", keepempty=false)
-        Symbol(b[2])
+        b = _scan_keyword(l, "STATUS")
+        Symbol(b[1])
     end
-    contents = join(l[4:end], '\n')
-    return Todo(contents, start, stop, status)
+    period = let
+        b = _scan_keyword(l, "PERIOD")
+        map(b) do pl
+            t = split(pl, " ", keepempty=false)
+            PeriodicInterval(t[1], parse(Int, t[2]))
+        end
+    end
+    contents = join(filter(_l->!any(startswith.(_l, ["START", "STOP", "STATUS", "PERIOD"])), l), '\n')
+    return Todo(contents, start, stop, status, period)
 end
 
 function _dump_todo_to_file(filename::String, todo::Todo)
@@ -182,9 +210,57 @@ function _dump_todo_to_file(filename::String, todo::Todo)
         println(io, "START ", todo.start)
         println(io, "STOP ", todo.stop)
         println(io, "STATUS ", todo.status)
+        for p in todo.period
+            println(io, "PERIOD ", p.type, " ", p.period)
+        end
         println(io, todo.content)
     end
     return nothing
+end
+
+function _todo_sort_by(t::Todo)
+    if t.start > LONG_AGO_SCHEDULE
+        return Date(t.start)
+    else
+        return Date(t.stop)
+    end
+end
+
+@include_with _utctoday begin
+function _update_periodic_date(t::Todo, dateslater::Period=Month(2))
+    _cont = t.content
+    _start = t.start
+    _stop = t.stop
+    todaydate = _utctoday()
+    refd = _todo_sort_by(t)
+    if !isempty(t.period)
+        test_array = range(todaydate, todaydate+dateslater, step=Day(1))
+        flagispicked = map(test_array) do td
+            any(t.period) do p
+                is_scheduled_on_date(td, refd, p)
+            end
+        end
+        i = findfirst(flagispicked)
+        if isnothing(i)
+            return t
+        end
+        # println(t, " ", i)
+        dshift = Day(test_array[i]-refd)
+        _start = (t.start > LONG_AGO_SCHEDULE) ? t.start + dshift : LONG_AGO_SCHEDULE
+        _stop = (t.stop < LONG_AFTER_SCHEDULE) ? t.stop + dshift : LONG_AFTER_SCHEDULE
+    end
+    _status = t.status
+    if _status == :none
+        if todaydate < _start
+            _status = :noted
+        elseif (todaydate >= _start) && (todaydate <= _stop)
+            _status = :ongoing
+        elseif todaydate > _stop
+            _status = :finished
+        end
+    end
+    return Todo(_cont, _start, _stop, _status, t.period)
+end
 end
 
 """
@@ -199,9 +275,10 @@ function list_todo()
         todofiles = readdir(_todopath())
         buf = Tuple{String,Todo}[]
         for f in todofiles
-            push!(buf, (f, _scan_todo_from_file(_todoprefix(f))))
+            loaded_todo = _scan_todo_from_file(_todoprefix(f))
+            push!(buf, (f, _update_periodic_date(loaded_todo)))
         end
-        buf = sort(buf, by=x->x[2].stop, rev=true)
+        buf = sort(buf, by=x->_todo_sort_by(x[2]), rev=true)
         return buf
     else
         return Tuple{String,Todo}[]
@@ -215,16 +292,33 @@ printall_todo(tl)
 
 print todo list `tl`. Default is all todos in `Todos` dir
 """
-function printall_todo(tl::Union{Vector{Tuple{String,Todo}},Nothing}=nothing)
+function printall_todo(tl::Union{Vector{Tuple{String,Todo}},Nothing}=nothing;
+    print_finished::Bool=true, print_date_before::Bool=true)
     if isnothing(tl)
         tl = list_todo()
     end
+    tday = _utctoday()
     for i = eachindex(tl)
+        if !print_finished
+            if tl[i][2].status == :finished
+                continue
+            end
+        end
+        if !print_date_before
+            if _todo_sort_by(tl[i][2]) < tday
+                continue
+            end
+        end
+        if i > 1
+            if (_todo_sort_by(tl[i-1][2]) >= tday) && (_todo_sort_by(tl[i][2]) < tday)
+                printstyled("-"^8, " now ", "-"^8, '\n', color=:red)
+            end
+        end
         if SETTING["todo_print_format"] == "long"
             println("-"^8)
             println(i, "\t", tl[i][1])
         elseif SETTING["todo_print_format"] == "short"
-            Base.print(@sprintf("%3d ", i))
+            print(@sprintf("%3d ", i))
         end
         _todo_printcmd(tl[i][2])
     end
@@ -262,7 +356,7 @@ move todo file to archive dir, and no longer print it
 function archive_todo_id()
     tl = list_todo()
     printall_todo(tl)
-    Base.print("\n\nNo.> ")
+    print("\n\nNo.> ")
     i = parse(Int, readline())
     if (i > 0) && (i <= length(tl))
         mv(_todoprefix(tl[i][1]), _todoarchiveprefix(tl[i][1]))
@@ -281,7 +375,7 @@ list todos with id, and then open the picked id with code editor
 function open_todo_id()
     tl = list_todo()
     printall_todo(tl)
-    Base.print("\n\nNo.> ")
+    print("\n\nNo.> ")
     i = parse(Int, readline())
     if (i > 0) && (i <= length(tl))
         open_with_program("code_editor", _todoprefix(tl[i][1]))

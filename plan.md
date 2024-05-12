@@ -10,18 +10,19 @@
     - [x] store item
     - [ ] alarm
     - [ ] calendar
-    - [ ] periodic todo
+    - [x] periodic todo
 - project management
     - [ ] open directory
 - note
     - [x] add and remove
-    - [ ] replace link using relative path to repository
 - cross link
     - [ ] append backlink
-- backup
-    - [x] log modified time
+    - [ ] absolute path to relative log modified time
     - [ ] incremental backup
 - literature management
     - [ ] import paper
     - [ ] paper meta data
+        - [ ] article
+        - [ ] author
+        - [ ] publication
     - [ ] search
