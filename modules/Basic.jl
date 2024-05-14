@@ -32,6 +32,40 @@ raquit = raexit
 
 _randstr(n::Int=8) = String(rand([collect('a':'z'); collect('A':'Z'); collect('0':'9')], n))
 
+"""
+```
+_randfilename(dir, strlen; prefix="", postfix="", issame::Function=(::String)->false)
+```
+return a new filename that is not exist. additional rule can be set by `issame`
+"""
+function _randfilename(dir::AbstractString, strlen::Integer;
+    prefix::AbstractString="", postfix::AbstractString="",
+    issame::Function=(::String)->false)
+    fname = prefix*_randstr(strlen)*postfix
+    while isfile(joinpath(dir, fname)) || issame(fname)
+        fname = prefix*_randstr(strlen)*postfix
+    end
+    return fname
+end
+
+function _printstyledstringlen(s::String, n::Integer=0; align::Symbol=:left, color=:white)
+    if iszero(n)
+        printstyled(s, color=color)
+        return nothing
+    end
+    if length(s) > n
+        printstyled(s[1:n], color=color)
+        return nothing
+    end
+    spaces = " "^(n-length(s))
+    if align == :left
+        printstyled(s, spaces, color=color)
+    elseif align == :right
+        printstyled(spaces, s, color=color)
+    end
+    return nothing
+end
+
 _abspath(ps...) = replace(abspath(ps...), "\\"=>"/")
 
 """

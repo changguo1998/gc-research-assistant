@@ -138,7 +138,7 @@ function _todo_printcmd(todo::Todo, indent::String="", indent_n::Integer=4)
         return nothing
     end
     statw= maximum(length, String.(TODO_STATUS_LIST_SCHEDULE))
-    printstyled(indent, String(todo.status), " "^(statw-length(String(todo.status))+1),
+    _printstyledstringlen(indent*String(todo.status), statw+1,
         color=TODO_STATUS_COLOR[todo.status])
     if todo.start > LONG_AGO_SCHEDULE
         print(todo.start)
@@ -151,6 +151,7 @@ function _todo_printcmd(todo::Todo, indent::String="", indent_n::Integer=4)
     else
         print(" "^9, "?", " "^9)
     end
+    _printstyledstringlen(" "*dayname(_todo_sort_by(todo)), 10)
     buf = split(todo.content, '\n', keepempty=true)
     if SETTING["todo_print_format"] == "long"
         if !isempty(todo.period)
@@ -333,15 +334,17 @@ add_todo(;content, start, stop, status)
 create a new todo file using input variable, then open the todo file with code editor
 """
 function add_todo(;content::String="",
-    start::DateTime=LONG_AFTER_SCHEDULE,
+    start::DateTime=LONG_AGO_SCHEDULE,
     stop::DateTime=LONG_AFTER_SCHEDULE,
     status::Symbol=TODO_STATUS_LIST_SCHEDULE[1])
     @repoisopened
     t_todo = Todo(content, start, stop, status)
-    fname = "TODO"*_randstr(16)*".md"
-    while isfile(_todoprefix(fname)) || isfile(_todoarchiveprefix(fname))
-        fname = "TODO"*_randstr(16)*".md"
-    end
+    fname = _randfilename(_todopath(), 16, prefix="TODO", postfix=".md",
+        issame = _f -> isfile(_todoarchiveprefix(_f)))
+    # fname = "TODO"*_randstr(16)*".md"
+    # while isfile(_todoprefix(fname)) || isfile(_todoarchiveprefix(fname))
+    #     fname = "TODO"*_randstr(16)*".md"
+    # end
     _dump_todo_to_file(_todoprefix(fname), t_todo)
     open_with_program("code_editor", _todoprefix(fname))
     return nothing
