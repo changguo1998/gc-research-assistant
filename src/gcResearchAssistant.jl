@@ -1,3 +1,6 @@
+
+module gcResearchAssistant
+
 using Dates, TimeZones, TOML, Printf
 import Base: ==, print
 
@@ -29,3 +32,5 @@ end
 # if isdir(SETTING["repository_path"])
 #     open_repo!(SETTING["repository_path"])
 # end
+
+end

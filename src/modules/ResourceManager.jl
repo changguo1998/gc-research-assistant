@@ -42,6 +42,8 @@ function init_repo(dirc::String)
     return nothing
 end
 
+export init_repo
+
 """
 ```
 open_repo!(path::String)
@@ -58,6 +60,8 @@ function open_repo!(path::String)
     SETTING["repository_path"] = _abspath(path)
     return nothing
 end
+
+export open_repo!
 
 """
 ```
@@ -81,6 +85,8 @@ function close_repo()
     SETTING["repository_path"] = ""
     return nothing
 end
+
+export close_repo
 
 # =================================
 #       project management
@@ -110,6 +116,8 @@ function list_projects()
     return prjlist
 end
 
+export list_projects
+
 """
 ```
 init_project(prjname; git::Bool=false)
@@ -132,6 +140,8 @@ function init_project(prjname::AbstractString=_randstr(8); git::Bool=false)
     return nothing
 end
 
+export init_project
+
 """
 ```
 open_prj_name!(prjname)
@@ -149,6 +159,8 @@ function open_prj_name!(prjname::AbstractString)
     end
     return nothing
 end
+
+export open_prj_name!
 
 """
 ```
@@ -182,6 +194,8 @@ function open_prj_id!()
     return nothing
 end
 
+export open_prj_id!
+
 """
 ```
 close_prj()
@@ -195,6 +209,8 @@ function close_prj()
     return nothing
 end
 
+export close_prj
+
 """
 ```
 open_prj_dir_with_editor()
@@ -206,3 +222,5 @@ function open_prj_dir_with_editor()
     @prjisopened
     open_with_program("code_editor", _prjpath())
 end
+
+export open_prj_dir_with_editor

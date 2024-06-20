@@ -49,6 +49,8 @@ function update_note_link_to_zotero_pdfs()
     return nothing
 end
 
+export update_note_link_to_zotero_pdfs
+
 _notepath() = _repoprefix(GALLERY_DIR_NAME_NOTE)
 
 _noteprefix(p...) = _repoprefix(GALLERY_DIR_NAME_NOTE, p...)
@@ -69,6 +71,8 @@ function list_notes(pat::String="")
     end
 end
 
+export list_notes
+
 """
 ```
 open_note_name(tag::String)
@@ -83,6 +87,8 @@ function open_note_name(tag::String)
         @warn "note name must end with .md"
     end
 end
+
+export open_note_name
 
 """
 ```
@@ -106,3 +112,5 @@ function open_note_id(pat::String="")
     end
     return nothing
 end
+
+export open_note_id

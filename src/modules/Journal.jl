@@ -20,6 +20,8 @@ function open_periodic_journal(pathfunc::Function, templatefunc::Function, date:
     open_with_program("markdown_editor", jfilepath)
 end
 
+export open_daily_journal, open_weekly_journal, open_monthly_journal
+
 """
 ```
 open_daily_journal(date::Date=_utctoday())
@@ -178,6 +180,8 @@ function gather_journal(d1::Date=_utctoday()-Day(7), d2::Date=_utctoday())
     return nothing
 end
 
+export gather_journal
+
 # =================================
 #       project management
 # =================================
@@ -192,6 +196,8 @@ function open_prj_log()
     @prjisopened
     open_with_program("markdown_editor", _prjprefix(".ra", "log.md"))
 end
+
+export open_prj_log
 
 """
 ```
@@ -224,3 +230,5 @@ function write_prj_log()
     open_with_program("markdown_editor", logfilepath)
     return nothing
 end
+
+export write_prj_log

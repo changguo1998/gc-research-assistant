@@ -39,10 +39,14 @@ function _save_lib_author_to_file(f::AbstractString, au::LibAuthor)
     return nothing
 end
 
+export list_lib_authors
+
 function list_lib_authors()
     fs = readdir(_libauthorpath())
     return map(f->_load_lib_author_from_file(_libauthorprefix(f)), fs)
 end
+
+export add_literater_author
 
 function add_literater_author(name::AbstractString, lastname::AbstractString="";
     firstnamecn::AbstractString="", lastnamecn::AbstractString="")

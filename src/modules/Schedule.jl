@@ -21,6 +21,8 @@ function after_period(t::Period)
     return round(now(), TIME_PRECISION_SCHEDULE) + t
 end
 
+export after_period
+
 """
 ```
 struct PeriodicInterval
@@ -286,6 +288,8 @@ function list_todo()
     end
 end
 
+export list_todo
+
 """
 ```
 printall_todo(tl)
@@ -326,6 +330,8 @@ function printall_todo(tl::Union{Vector{Tuple{String,Todo}},Nothing}=nothing;
     return nothing
 end
 
+export printall_todo
+
 """
 ```
 add_todo(;content, start, stop, status)
@@ -350,6 +356,8 @@ function add_todo(;content::String="",
     return nothing
 end
 
+export add_todo
+
 """
 ```
 archive_todo_id()
@@ -369,6 +377,8 @@ function archive_todo_id()
     return nothing
 end
 
+export archive_todo_id
+
 """
 ```
 open_todo_id()
@@ -387,3 +397,5 @@ function open_todo_id()
     end
     return nothing
 end
+
+export open_todo_id

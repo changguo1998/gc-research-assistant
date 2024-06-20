@@ -29,6 +29,7 @@ end
 
 raquit = raexit
 
+export raexit, raquit
 
 _randstr(n::Int=8) = String(rand([collect('a':'z'); collect('A':'Z'); collect('0':'9')], n))
 
@@ -119,6 +120,8 @@ function rastatus()
     end
 end
 
+export rastatus
+
 """
 ```
 listdirinpattern(pattern, dir)
@@ -135,6 +138,8 @@ function listdirinpattern(pat::Function, dir::String)
     end
     return list
 end
+
+export listdirinpattern
 
 """
 ```

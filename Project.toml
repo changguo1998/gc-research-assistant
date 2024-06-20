@@ -1,3 +1,8 @@
+name = "gcResearchAssistant"
+uuid = "14c46a04-b806-4b22-9825-637bc195e162"
+authors = ["Chang Guo <changguo1998@gmail.com>"]
+version = "0.0.1"
+
 [deps]
 Blink = "ad839575-38b3-5650-b840-f874b8c74a25"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"

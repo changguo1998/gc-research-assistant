@@ -29,6 +29,8 @@ function dump_modified_date(fp::String=_repohiddendirprefix(MODIFIED_DATE_DB))
     return nothing
 end
 
+export dump_modified_date
+
 """
 ```
 load_modified_date(fp)
@@ -46,3 +48,5 @@ function load_modified_date(fp::String=_repohiddendirprefix(MODIFIED_DATE_DB))
     end
     return (files, dates)
 end
+
+export load_modified_date
