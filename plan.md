@@ -12,11 +12,11 @@
     - [ ] calendar
     - [x] periodic todo
 - project management
-    - [ ] open directory
+    - [x] open directory
 - note
     - [x] add and remove
 - cross link
-    - [ ] append backlink
+    - [x] append backlink
     - [ ] absolute path to relative log modified time
     - [ ] incremental backup
 - literature management
