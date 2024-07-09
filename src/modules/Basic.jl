@@ -16,6 +16,33 @@ end
 
 """
 ```
+loadsetting!()
+```
+"""
+function loadsetting!()
+    global SETTING
+    _SETTING_FILE = abspath(homedir(), ".gcra", "setting.toml")
+    DEFAULT_SETTING_PATH=abspath(@__DIR__, "..", "..", "setting.toml")
+
+    @debug "_SETTING_FILE: $_SETTING_FILE"
+    @debug "DEFAULT_SETTING_PATH: $DEFAULT_SETTING_PATH"
+    
+    if isfile(_SETTING_FILE)
+        if mtime(DEFAULT_SETTING_PATH) > mtime(_SETTING_FILE)
+            global SETTING = TOML.parsefile(DEFAULT_SETTING_PATH)
+        else
+            global SETTING = TOML.parsefile(_SETTING_FILE)
+        end
+    else
+        global SETTING = TOML.parsefile(DEFAULT_SETTING_PATH)
+        mkpath(abspath(homedir(), ".gcra"))
+        open(io->TOML.print(io, SETTING), _SETTING_FILE, "w")
+    end
+    return nothing
+end
+
+"""
+```
 raexit(),raquit()
 ```
 

@@ -5,29 +5,17 @@ using Dates, TimeZones, TOML, Printf
 import Base: ==, print
 
 include(joinpath(@__DIR__, "modules", "Basic.jl"))
+include(joinpath(@__DIR__, "modules", "ResourceManager.jl"))
+include(joinpath(@__DIR__, "modules", "Schedule.jl"))
+include(joinpath(@__DIR__, "modules", "Templates.jl"))
+include(joinpath(@__DIR__, "modules", "Backup.jl"))
+include(joinpath(@__DIR__, "modules", "Crosslink.jl"))
+include(joinpath(@__DIR__, "modules", "Journal.jl"))
+include(joinpath(@__DIR__, "modules", "Note.jl"))
+include(joinpath(@__DIR__, "modules", "ZoteroAdapter.jl"))
+include(joinpath(@__DIR__, "modules", "Literature.jl"))
 
-for m in readdir(abspath(@__DIR__, "modules"), join=true)
-    include(m)
-end
-
-# reload code for interaction between modules
-for m in readdir(abspath(@__DIR__, "modules"), join=true)
-    include(m)
-end
-
-global _SETTING_FILE = abspath(homedir(), ".gcra", "setting.toml")
-
-if isfile(_SETTING_FILE)
-    if mtime(abspath(@__DIR__, "setting.toml")) > mtime(_SETTING_FILE)
-        global SETTING = TOML.parsefile(abspath(@__DIR__, "setting.toml"))
-    else
-        global SETTING = TOML.parsefile(_SETTING_FILE)
-    end
-else
-    global SETTING = TOML.parsefile(abspath(@__DIR__, "setting.toml"))
-    mkpath(abspath(homedir(), ".gcra"))
-    open(io->TOML.print(io, SETTING), _SETTING_FILE, "w")
-end
+global SETTING = Dict{String,String}()
 
 # if isdir(SETTING["repository_path"])
 #     open_repo!(SETTING["repository_path"])

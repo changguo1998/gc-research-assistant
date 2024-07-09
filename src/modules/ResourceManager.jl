@@ -1,6 +1,6 @@
-@include_without REPOSITORY_SETTING_DIR_NAME_RM const REPOSITORY_SETTING_DIR_NAME_RM = ".gcra"
+const REPOSITORY_SETTING_DIR_NAME_RM = ".gcra"
 
-@include_without REPOSITORY_MODULE_DIR_RM REPOSITORY_MODULE_DIR_RM = String[]
+REPOSITORY_MODULE_DIR_RM = String[]
 
 # =================================
 #       repository management
