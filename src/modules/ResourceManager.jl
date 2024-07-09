@@ -204,7 +204,7 @@ close_prj()
 Close opened project
 """
 function close_prj()
-    @prjisopened
+    # @prjisopened
     SETTING["project_name"] = ""
     return nothing
 end
