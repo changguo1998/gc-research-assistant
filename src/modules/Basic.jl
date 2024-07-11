@@ -49,6 +49,7 @@ raexit(),raquit()
 Exit program and clean temporary file
 """
 function raexit()
+    _SETTING_FILE = abspath(homedir(), ".gcra", "setting.toml")
     open(io->TOML.print(io, SETTING), _SETTING_FILE, "w")
     close_repo()
     exit()
